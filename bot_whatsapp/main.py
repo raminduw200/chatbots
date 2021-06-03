@@ -3,6 +3,7 @@ import requests
 from textblob import TextBlob
 from time import sleep
 import pyperclip
+import keyboard
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -15,7 +16,6 @@ BID = os.environ.get("BID")
 KEY = os.environ.get("KEY")
 
 position1 = pog.locateOnScreen("send_sticker.jpg", confidence=0.6)
-print(position1)
 # Position laptop screen - 2350, 1803
 x = position1[0]
 y = position1[1]
@@ -57,7 +57,8 @@ def send_message(message):
 
 
 def check_new_messages():
-    while True:
+    # press q to exit
+    while not keyboard.is_pressed('q'):
         try:
             position = pog.locateOnScreen("inbox_mssg.jpg", confidence=0.9)
 
@@ -80,13 +81,10 @@ def check_new_messages():
 
 
 def get_response():
-    parameters = {
-        'bid': BID,
-        'key': KEY,
-        'msg': get_message()
-    }
+    msg = get_message()
     response = requests.get(
-        "http://api.brainshop.ai/get", params=parameters)
+        "http://api.brainshop.ai/get?bid={}&key={}&uid=154631&msg={}".format(BID, KEY, msg))
+
     responseJson = response.json()
 
     print(responseJson['cnt'] + " - AI Chat bot")
@@ -99,5 +97,4 @@ def sentiment_analysis(message):
     return TextBlob(message).sentiment
 
 
-# reset_position()
 check_new_messages()
