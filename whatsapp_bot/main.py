@@ -3,7 +3,7 @@ import requests
 from textblob import TextBlob
 from time import sleep
 import pyperclip
-import keyboard
+# import keyboard
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -15,20 +15,20 @@ load_dotenv(dotenv_path)
 BID = os.environ.get("BID")
 KEY = os.environ.get("KEY")
 
-position1 = pog.locateOnScreen("send_sticker.jpg", confidence=0.6)
-# Position laptop screen - 2350, 1803
-x = position1[0]
-y = position1[1]
+# Locate send location
+pos_send_stkr = pog.locateOnScreen("ss/send_sticker.jpg", confidence=0.6)
+x_send_stkr = pos_send_stkr[0]  # Position of laptop screen - 2350
+y_send_stkr = pos_send_stkr[1]  # Position of laptop screen - 1803
+
+# Locate first conversation location
+pos_top_location = pog.locateOnScreen("ss/top_location.jpg", confidence=0.7)
 
 
 def get_message():
-    global x, y
+    global x_send_stkr, y_send_stkr
 
-    position = pog.locateOnScreen("send_sticker.jpg", confidence=0.7)
-    x = position[0]
-    y = position[1]
-    pog.moveTo(x, y)
-    pog.moveTo(x + 80, y - 55)
+    pog.moveTo(x_send_stkr, y_send_stkr)
+    pog.moveTo(x_send_stkr + 80, y_send_stkr - 55)
 
     # select last message and copy
     pog.tripleClick()
@@ -41,15 +41,9 @@ def get_message():
 
 
 def send_message(message):
-    global x, y
+    global x_send_stkr, y_send_stkr
 
-    position = pog.locateOnScreen("send_sticker.jpg", confidence=0.7)
-    # print(position, position[0], position[1])
-    # x = position[0]
-    # y = position[1]
-    # print(x, y + " TESTING")
-
-    pog.moveTo(position[0] + 150, position[1] + 13)
+    pog.moveTo(x_send_stkr + 150, y_send_stkr + 13)
     pog.click()
 
     pog.typewrite(message, interval=0.01)
@@ -57,11 +51,10 @@ def send_message(message):
 
 
 def check_new_messages():
-    # press q to exit
-    while not keyboard.is_pressed('q'):
+    global pos_top_location
+    while True:
         try:
-            position = pog.locateOnScreen("inbox_mssg.jpg", confidence=0.9)
-
+            position = pog.locateOnScreen("ss/inbox_mssg.jpg", confidence=0.9)
             if position is not None:
                 pog.moveTo(position)
                 pog.moveRel(-100, 0)
@@ -70,8 +63,7 @@ def check_new_messages():
                 send_message(get_response())
 
                 # Reset position
-                position = pog.locateOnScreen("top_location.jpg", confidence=.9)
-                pog.moveTo(position)
+                pog.moveTo(pos_top_location)
                 pog.click()
 
                 sleep(5)
@@ -87,10 +79,10 @@ def get_response():
 
     responseJson = response.json()
 
-    print(responseJson['cnt'] + " - AI Chat bot")
+    print(responseJson['cnt'] + " - Chat bot")
 
     # return responseJson['cnt'] + sentiment_analysis(responseJson['cnt']) + " - AI Chat bot"
-    return responseJson['cnt'] + " - AI Chat bot"
+    return responseJson['cnt'] + " - Chat bot"
 
 
 def sentiment_analysis(message):
